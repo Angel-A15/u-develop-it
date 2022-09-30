@@ -5,7 +5,7 @@
   "main": "inputCheck.js",
   "scripts": {
     "test": "jest"
-    "start": "node server.js"
+
   },
   "repository": {
     "type": "git",
