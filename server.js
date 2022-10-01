@@ -1,8 +1,6 @@
-const inputCheck = require('./utils/inputCheck');
-
 //Will connect MySQL database
 const mysql = require('mysql2');
-
+const inputCheck = require('./utils/inputCheck');
 const express = require('express');
 
 const PORT = process.env.PORT || 3001;
@@ -25,37 +23,6 @@ const db = mysql.createConnection(
     console.log('Connected to the election database.')
 );
 
-const sql = `INSERT INTO candidates (first_name, last_name, industry_connected)
-  VALUES (?,?,?)`;
-const params = [body.first_name, body.last_name, body.industry_connected];
-
-db.query(sql, params, (err, result) => {
-  if (err) {
-    res.status(400).json({ error: err.message });
-    return;
-  }
-  res.json({
-    message: 'success',
-    data: body
-  });
-});
-
-//Query the database to test the connection
-db.query(`SELECT * FROM candidates`, (err, rows) => {
-    console.log(rows);
-});
-
-// Create a candidate
-const sql = `INSERT INTO candidates (id, first_name, last_name, industry_connected) 
-              VALUES (?,?,?,?)`;
-const params = [1, 'Ronald', 'Firbank', 1];
-
-db.query(sql, params, (err, result) => {
-  if (err) {
-    console.log(err);
-  }
-  console.log(result);
-});
 
 // Get all candidates
 app.get('/api/candidates', (req, res) => {
@@ -114,19 +81,31 @@ app.delete('/api/candidate/:id', (req, res) => {
 
 // Create a candidate
 app.post('/api/candidate', ({ body }, res) => {
-    const errors = inputCheck(body, 'first_name', 'last_name', 'industry_connected');
+    const errors = inputCheck(
+      body,
+      'first_name',
+      'last_name',
+      'industry_connected'
+    );
     if (errors) {
       res.status(400).json({ error: errors });
       return;
     }
-});
-
-// GET a single candidate
-db.query(`SELECT * FROM candidates WHERE id = 1`, (err, row) => {
-    if (err) {
-      console.log(err);
-    }
-    console.log(row);
+  
+    const sql = `INSERT INTO candidates (first_name, last_name, industry_connected)
+      VALUES (?,?,?)`;
+    const params = [body.first_name, body.last_name, body.industry_connected];
+  
+    db.query(sql, params, (err, result) => {
+      if (err) {
+        res.status(400).json({ error: err.message });
+        return;
+      }
+      res.json({
+        message: 'success',
+        data: body
+      });
+    });
 });
 
 //Default response for any other request (not found)
