@@ -5,46 +5,46 @@ const inputCheck = require('../../utils/inputCheck');
 
 // Get all candidates
 app.get('/api/candidates', (req, res) => {
-    const sql = `SELECT candidates.*, parties.name 
-                  AS party_name 
-                  FROM candidates 
-                  LEFT JOIN parties 
-                  ON candidates.party_id = parties.id`;
+  const sql = `SELECT candidates.*, parties.name 
+                AS party_name 
+                FROM candidates 
+                LEFT JOIN parties 
+                ON candidates.party_id = parties.id`;
     
-    db.query(sql, (err, rows) => {
-      if (err) {
-        res.status(500).json({ error: err.message });
-        return;
-      }
-      res.json({
-        message: 'success',
-        data: rows
-      });
+  db.query(sql, (err, rows) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json({
+      message: 'success',
+      data: rows
     });
+  });
 });
   
 
 // Get a single candidate
 app.get('/api/candidate/:id', (req, res) => {
-    const sql = `SELECT candidates.*, parties.name 
-                  AS party_name 
-                  FROM candidates 
-                  LEFT JOIN parties 
-                  ON candidates.party_id = parties.id 
-                  WHERE candidates.id = ?`;
-    const params = [req.params.id];
+  const sql = `SELECT candidates.*, parties.name 
+                AS party_name 
+                FROM candidates 
+                LEFT JOIN parties 
+                ON candidates.party_id = parties.id 
+                WHERE candidates.id = ?`;
+  const params = [req.params.id];
   
     
-    db.query(sql, params, (err, row) => {
-      if (err) {
-        res.status(400).json({ error: err.message });
-        return;
-      }
-      res.json({
-        message: 'success',
-        data: row
-      });
+  db.query(sql, params, (err, row) => {
+    if (err) {
+      res.status(400).json({ error: err.message });
+      return;
+    }
+    res.json({
+      message: 'success',
+      data: row
     });
+  });
 });
 
 // Create a candidate
@@ -62,7 +62,12 @@ app.post('/api/candidate', ({ body }, res) => {
   
     const sql = `INSERT INTO candidates (first_name, last_name, industry_connected)
       VALUES (?,?,?)`;
-    const params = [body.first_name, body.last_name, body.industry_connected];
+    const params = [
+      body.first_name,
+      body.last_name,
+      body.industry_connected,
+      body.party_id
+    ];
   
     db.query(sql, params, (err, result) => {
       if (err) {
@@ -77,14 +82,20 @@ app.post('/api/candidate', ({ body }, res) => {
 });
 
 // Update a candidate's party
-app.put('/api/candidate/:id', (req, res) => {
+router.put('/candidate/:id', (req, res) => {
+  const errors = inputCheck(req.body, 'party_id');
+  if (errors) {
+    res.status(400).json({ error: errors });
+    return;
+  }
+
   const sql = `UPDATE candidates SET party_id = ? 
                WHERE id = ?`;
   const params = [req.body.party_id, req.params.id];
+
   db.query(sql, params, (err, result) => {
     if (err) {
       res.status(400).json({ error: err.message });
-      // check if a record was found
     } else if (!result.affectedRows) {
       res.json({
         message: 'Candidate not found'
@@ -102,7 +113,6 @@ app.put('/api/candidate/:id', (req, res) => {
 // Delete a candidate
 app.delete('/api/candidate/:id', (req, res) => {
   const sql = `DELETE FROM candidates WHERE id = ?`;
-  const params = [req.params.id];
 
   db.query(sql, params, (err, result) => {
     if (err) {

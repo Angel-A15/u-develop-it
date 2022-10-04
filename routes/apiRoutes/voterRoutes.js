@@ -3,7 +3,7 @@ const router = express.Router();
 const db = require('../../db/connection');
 const inputCheck = require('../../utils/inputCheck');
 
-//Post route
+//Post Route: Get all voters alphabetized by last name
 router.get('/voters', (req, res) => {
     const sql = `SELECT * FROM voters ORDER BY last_name`;
   
@@ -21,15 +21,10 @@ router.get('/voters', (req, res) => {
 
 // Get single voter
 router.get('/voter/:id', (req, res) => {
-    // Data validation
-    const errors = inputCheck(body, 'first_name', 'last_name', 'email');
-    if (errors) {
-        res.status(400).json({ error: errors });
-        return;
-    }
     const sql = `SELECT * FROM voters WHERE id = ?`;
     const params = [req.params.id];
-  
+
+    // Data validation
     db.query(sql, params, (err, row) => {
         if (err) {
             res.status(400).json({ error: err.message });
@@ -42,7 +37,30 @@ router.get('/voter/:id', (req, res) => {
     });
 });
 
-//Put Route
+// Create a voter
+router.post('/voter', ({ body }, res) => {
+    const errors = inputCheck(body, 'first_name', 'last_name', 'email');
+    if (errors) {
+      res.status(400).json({ error: errors });
+      return;
+    }
+  
+    const sql = `INSERT INTO voters (first_name, last_name, email) VALUES (?,?,?)`;
+    const params = [body.first_name, body.last_name, body.email];
+  
+    db.query(sql, params, (err, result) => {
+        if (err) {
+            res.status(400).json({ error: err.message });
+            return;
+        }
+        res.json({
+            message: 'success',
+            data: body
+        });
+    });
+});
+
+//Put Route: Update a voters email
 router.put('/voter/:id', (req, res) => {
     // Data validation
     const errors = inputCheck(req.body, 'email');
@@ -71,7 +89,7 @@ router.put('/voter/:id', (req, res) => {
     });
 });
 
-//Delete Route
+//Delete Route: Delete a voter
 router.delete('/voter/:id', (req, res) => {
     const sql = `DELETE FROM voters WHERE id = ?`;
   
@@ -91,4 +109,5 @@ router.delete('/voter/:id', (req, res) => {
         }
     });
 });
+
 module.exports = router;
