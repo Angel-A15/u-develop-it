@@ -1,8 +1,4 @@
 -- drop/delete the tables every time you run the schema.sql file, ensuring that you start with a clean slate
-DROP DATABASE IF EXISTS election;
-CREATE DATABASE election;
-USE election;
-
 DROP TABLE IF EXISTS votes;
 DROP TABLE IF EXISTS candidates;
 DROP TABLE IF EXISTS parties;
